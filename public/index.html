@@ -238,13 +238,13 @@
       border: 1px solid var(--border);
       border-radius: 12px;
       overflow-x: auto;
+      width: 100%;
     }
     table {
       width: 100%;
       border-collapse: collapse;
       font-size: 13px;
       font-variant-numeric: tabular-nums;
-      min-width: 920px;
     }
     thead th {
       text-align: right;
@@ -272,54 +272,61 @@
     tbody tr:hover { background: var(--surface-2); }
     tbody td { padding: 11px 12px; white-space: nowrap; }
 
-    /* Mobile Card List (hidden on desktop) */
+    /* Mobile Card List (hidden on wide desktop) */
     .mobile-list {
       display: none;
       flex-direction: column;
       gap: 10px;
+      width: 100%;
+      max-width: 100%;
     }
     .m-card {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 12px 13px;
+      padding: 12px 12px;
       cursor: pointer;
       transition: background 0.12s;
       font-variant-numeric: tabular-nums;
+      width: 100%;
+      max-width: 100%;
+      overflow: hidden;
     }
     .m-card:active { background: var(--surface-2); }
     .m-card-top {
       display: flex;
       align-items: flex-start;
       justify-content: space-between;
-      gap: 10px;
+      gap: 8px;
       margin-bottom: 10px;
     }
-    .m-card-title { min-width: 0; }
+    .m-card-title { min-width: 0; flex: 1; }
     .m-card-name-row {
       display: flex;
       align-items: center;
       flex-wrap: wrap;
-      gap: 6px;
+      gap: 5px;
     }
     .m-card-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 6px;
       background: rgba(15, 23, 42, 0.7);
       border: 1px solid rgba(31, 41, 55, 0.8);
       border-radius: 8px;
-      padding: 8px 10px;
+      padding: 8px 8px;
       margin-bottom: 9px;
     }
+    .m-card-grid > div { min-width: 0; overflow: hidden; }
     .m-metric-k { font-size: 11px; color: var(--muted); }
-    .m-metric-v { font-size: 14px; font-weight: 600; margin-top: 1px; }
+    .m-metric-v { font-size: 13px; font-weight: 600; margin-top: 1px; }
     .m-metric-s { font-size: 11px; margin-top: 1px; }
     .m-card-bottom {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 8px;
+      flex-wrap: wrap;
+      gap: 6px;
       font-size: 11px;
       color: var(--muted);
     }
@@ -358,10 +365,10 @@
     .status-pill {
       display: inline-block;
       font-size: 11px;
-      padding: 2px 8px;
+      padding: 2px 7px;
       border-radius: 999px;
       font-weight: 600;
-      max-width: 210px;
+      max-width: 100%;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -449,14 +456,17 @@
       line-height: 1.75;
     }
 
-    /* Responsive: Tablet */
-    @media (max-width: 1024px) {
-      .macro-bar { grid-template-columns: repeat(3, 1fr); }
-      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    /* Responsive: Tablet & WeChat Desktop / Mobile (< 960px) */
+    @media (max-width: 960px) {
+      .macro-bar { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .mobile-sort-wrap { display: block; }
+      .table-wrap { display: none; }
+      .mobile-list { display: flex; }
     }
 
-    /* Responsive: Mobile / WeChat (< 768px) */
-    @media (max-width: 768px) {
+    /* Responsive: Phone / Mobile WeChat (< 640px) */
+    @media (max-width: 640px) {
       .container { padding: 12px 10px 36px; }
       .title-wrap h1 { font-size: 17px; }
       .subtitle { font-size: 11px; }
@@ -464,7 +474,7 @@
       .header-actions { width: 100%; justify-content: space-between; }
 
       .macro-bar {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 6px;
         margin-bottom: 10px;
       }
@@ -479,7 +489,7 @@
       .macro-chg { font-size: 10px; padding: 1px 5px; margin-top: 2px; }
 
       .kpi-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 8px;
         margin-bottom: 10px;
       }
@@ -505,14 +515,9 @@
         width: 100%;
         gap: 8px;
       }
-      .search-input { flex: 1; min-width: 130px; width: auto; }
-      .mobile-sort-wrap { display: block; }
+      .search-input { flex: 1; min-width: 120px; width: auto; }
 
-      /* Switch from wide table to native mobile cards */
-      .table-wrap { display: none; }
-      .mobile-list { display: flex; }
-
-      .prem-badge { font-size: 14px; padding: 4px 9px; min-width: 72px; }
+      .prem-badge { font-size: 13px; padding: 3px 8px; min-width: 64px; }
       .footer-note { font-size: 11px; }
     }
   </style>
@@ -623,7 +628,7 @@
 
     <div class="footer-note">
       * 估值说明：美股与商品 QDII-LOF 自动对齐官方净值基准日，叠加昨夜标的收盘、盘中期货及离岸人民币 (USD/CNH) 汇率推算；A 股 LOF 采用天天基金盘中估值。点击任意基金可查看完整计算明细。<br />
-      * 免责声明：本工具仅用于公开行情整理与研究参考，不构成任何投资建议。
+      * 免责声明：本工具仅用于公开行情整理与研究参考，不构成任何投资建议。（v2.1 微信适配版）
     </div>
   </div>
 
