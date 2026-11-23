@@ -1,0 +1,11 @@
+{
+  "functions": {
+    "api/lof.py": {
+      "maxDuration": 30
+    }
+  },
+  "rewrites": [
+    { "source": "/api/lof", "destination": "/api/lof.py" },
+    { "source": "/", "destination": "/index.html" }
+  ]
+}

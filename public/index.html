@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>中国 LOF 基金实时溢价监测看板</title>
+  <style>
+    :root {
+      --bg: #0b1120;
+      --surface: #111827;
+      --surface-2: #172033;
+      --border: #1f2937;
+      --text: #f3f4f6;
+      --muted: #9ca3af;
+      --up: #ef4444;
+      --up-bg: rgba(239, 68, 68, 0.14);
+      --warn: #f59e0b;
+      --warn-bg: rgba(245, 158, 11, 0.14);
+      --down: #10b981;
+      --down-bg: rgba(16, 185, 129, 0.14);
+      --accent: #3b82f6;
+      --accent-bg: rgba(59, 130, 246, 0.16);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Inter", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px 16px 48px;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .title-wrap h1 {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .live-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--down);
+      box-shadow: 0 0 10px var(--down);
+      display: inline-block;
+    }
+    .subtitle {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .meta-time {
+      font-size: 12px;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+    .btn {
+      background: var(--surface-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn:hover { border-color: var(--accent); background: #1e293b; }
+    .btn-primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      font-weight: 600;
+    }
+    .btn-primary:hover { background: #2563eb; }
+    .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+    /* Macro Ticker */
+    .macro-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .macro-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-variant-numeric: tabular-nums;
+    }
+    .macro-label { font-size: 12px; color: var(--muted); }
+    .macro-val { font-size: 15px; font-weight: 600; margin-top: 2px; }
+    .macro-chg { font-size: 12px; font-weight: 600; padding: 2px 7px; border-radius: 6px; }
+
+    /* KPI Cards */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .kpi-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+    }
+    .kpi-label { font-size: 12px; color: var(--muted); }
+    .kpi-value {
+      font-size: 26px;
+      font-weight: 700;
+      margin-top: 4px;
+      font-variant-numeric: tabular-nums;
+    }
+    .kpi-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+    /* Controls */
+    .controls {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-bottom: 14px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .tab {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 5px 11px;
+      border-radius: 999px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .tab:hover { color: var(--text); border-color: #374151; }
+    .tab.active {
+      background: var(--accent-bg);
+      color: #93c5fd;
+      border-color: var(--accent);
+      font-weight: 600;
+    }
+
+    .filters-right {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+    }
+    .toggle-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text);
+      cursor: pointer;
+      user-select: none;
+    }
+    .toggle-label input { accent-color: var(--accent); cursor: pointer; }
+    .search-input {
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 13px;
+      width: 190px;
+      outline: none;
+    }
+    .search-input:focus { border-color: var(--accent); }
+
+    /* Table */
+    .table-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      font-variant-numeric: tabular-nums;
+      min-width: 960px;
+    }
+    thead th {
+      text-align: right;
+      padding: 12px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      background: #0f172a;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+    }
+    thead th:first-child, tbody td:first-child { text-align: left; }
+    thead th:nth-child(2), tbody td:nth-child(2) { text-align: left; }
+    thead th:hover { color: var(--text); }
+    thead th.sorted { color: #93c5fd; }
+
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.12s;
+      cursor: pointer;
+    }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--surface-2); }
+    tbody td { padding: 11px 12px; white-space: nowrap; }
+
+    .fund-code { font-weight: 700; color: #93c5fd; font-size: 13px; }
+    .fund-name { font-weight: 600; color: var(--text); }
+    .fund-cat {
+      display: inline-block;
+      font-size: 11px;
+      padding: 1px 6px;
+      border-radius: 4px;
+      background: #1f2937;
+      color: #cbd5e1;
+      margin-left: 6px;
+    }
+    .fund-bench { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+    .num-up { color: var(--up); }
+    .num-down { color: var(--down); }
+    .num-muted { color: var(--muted); }
+
+    .prem-badge {
+      display: inline-block;
+      min-width: 68px;
+      text-align: center;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 13px;
+    }
+    .prem-hot { background: var(--up-bg); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.35); }
+    .prem-mid { background: var(--warn-bg); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.35); }
+    .prem-flat { background: #1f2937; color: #d1d5db; }
+    .prem-disc { background: var(--down-bg); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.35); }
+
+    .status-pill {
+      display: inline-block;
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-weight: 600;
+    }
+    .status-open { background: var(--down-bg); color: #34d399; }
+    .status-limit { background: var(--warn-bg); color: #fbbf24; }
+    .status-paused { background: rgba(107, 114, 128, 0.25); color: #9ca3af; }
+
+    .loading-state {
+      text-align: center;
+      padding: 48px 20px;
+      color: var(--muted);
+    }
+
+    /* Footer note */
+    .footer-note {
+      margin-top: 16px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    /* Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      padding: 16px;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal {
+      background: var(--surface);
+      border: 1px solid #334155;
+      border-radius: 14px;
+      width: 100%;
+      max-width: 540px;
+      padding: 20px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 14px;
+    }
+    .modal-title { font-size: 17px; font-weight: 700; }
+    .modal-close {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-size: 22px;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .modal-close:hover { color: var(--text); }
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .detail-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+    .detail-box .k { font-size: 11px; color: var(--muted); }
+    .detail-box .v { font-size: 15px; font-weight: 700; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .formula-box {
+      background: #0f172a;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 12px;
+      color: #cbd5e1;
+      line-height: 1.8;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div class="title-wrap">
+        <h1><span class="live-dot"></span>中国 LOF 基金实时溢价监测看板</h1>
+        <div class="subtitle">覆盖 50 只热门美股 / 原油 / 黄金 / 海外 / A股 LOF · 自动对齐 T-2 净值日期并叠加昨夜行情、盘中期货与离岸汇率</div>
+      </div>
+      <div class="header-actions">
+        <span class="meta-time" id="updatedAt">加载中...</span>
+        <label class="toggle-label">
+          <input type="checkbox" id="autoRefresh" checked />
+          60s 自动刷新
+        </label>
+        <button class="btn btn-primary" id="refreshBtn" onclick="loadData(true)">立即刷新</button>
+      </div>
+    </div>
+
+    <!-- Macro Ticker -->
+    <div class="macro-bar" id="macroBar"></div>
+
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">当前监控 LOF 总数</div>
+        <div class="kpi-value" id="kpiTotal">--</div>
+        <div class="kpi-sub">含美股 / 原油 / 黄金 / 港股 / A股</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">高溢价预警 (≥ 3%)</div>
+        <div class="kpi-value num-up" id="kpiHigh">--</div>
+        <div class="kpi-sub">场内情绪偏热，注意溢价回落风险</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">潜在套利机会 (溢价≥2% 且未暂停)</div>
+        <div class="kpi-value" style="color:#fbbf24" id="kpiArb">--</div>
+        <div class="kpi-sub">申购需结合手续费与 T+2 波动评估</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">当前最高实时溢价率</div>
+        <div class="kpi-value num-up" id="kpiMax">--</div>
+        <div class="kpi-sub" id="kpiMaxName">--</div>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="controls">
+      <div class="tabs" id="categoryTabs">
+        <button class="tab active" data-cat="ALL">全部 (50)</button>
+        <button class="tab" data-cat="美股QDII">美股QDII</button>
+        <button class="tab" data-cat="原油商品QDII">原油商品QDII</button>
+        <button class="tab" data-cat="黄金贵金属">黄金贵金属</button>
+        <button class="tab" data-cat="港股/海外QDII">港股/海外QDII</button>
+        <button class="tab" data-cat="A股热门LOF">A股热门LOF</button>
+      </div>
+      <div class="filters-right">
+        <label class="toggle-label">
+          <input type="checkbox" id="onlyOpen" />
+          仅看未暂停申购
+        </label>
+        <label class="toggle-label">
+          <input type="checkbox" id="onlyHigh" />
+          仅看溢价 ≥ 2%
+        </label>
+        <input type="text" class="search-input" id="searchInput" placeholder="搜索代码或名称..." />
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th data-sort="code">代码</th>
+            <th data-sort="name">基金名称 / 估值参考标的</th>
+            <th data-sort="price">场内现价</th>
+            <th data-sort="change_pct">场内涨幅</th>
+            <th data-sort="nav">官方净值 (基准日)</th>
+            <th data-sort="est_nav">实时估算净值</th>
+            <th data-sort="premium_pct" class="sorted">实时溢价率 ↓</th>
+            <th data-sort="turnover_wan">成交额(万)</th>
+            <th data-sort="purchase_limit">申购状态 / 限额</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <tr><td colspan="9" class="loading-state">正在并发拉取 50 只 LOF 实时行情、官方净值、美股标的与期货数据，请稍候（约 3~5 秒）...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="footer-note">
+      * 估值说明：美股与大宗商品 QDII-LOF 根据官方净值基准日自动对齐其后所有美股交易日涨跌幅，并结合盘中股指/商品期货及离岸人民币 (USD/CNH) 汇率按估算仓位动态推算；A 股 LOF 使用天天基金盘中实时估值。点击任意一行可查看详细估值拆解。<br />
+      * 免责声明：本工具仅用于公开行情整理与研究参考，实时估值存在仓位偏差、申赎费率与汇率误差，不构成任何投资建议。
+    </div>
+  </div>
+
+  <!-- Breakdown Modal -->
+  <div class="modal-backdrop" id="modalBackdrop" onclick="if(event.target===this) closeModal()">
+    <div class="modal">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title" id="modalTitle">--</div>
+          <div class="subtitle" id="modalSub">--</div>
+        </div>
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+      </div>
+      <div class="detail-grid" id="modalGrid"></div>
+      <div class="formula-box" id="modalFormula"></div>
+    </div>
+  </div>
+
+  <script>
+    let allItems = [];
+    let currentCategory = "ALL";
+    let sortKey = "premium_pct";
+    let sortDir = -1; // -1 desc, 1 asc
+    let refreshTimer = null;
+
+    function fmtNum(v, digits = 4) {
+      if (v === null || v === undefined || Number.isNaN(v)) return "--";
+      return Number(v).toFixed(digits);
+    }
+
+    function fmtPct(v, showPlus = true) {
+      if (v === null || v === undefined || Number.isNaN(v)) return "--";
+      const n = Number(v);
+      return `${showPlus && n > 0 ? "+" : ""}${n.toFixed(2)}%`;
+    }
+
+    function renderMacro(macro) {
+      const bar = document.getElementById("macroBar");
+      bar.innerHTML = (macro || []).map(m => {
+        const chg = m.change_pct;
+        const cls = chg === null ? "prem-flat" : (chg > 0 ? "prem-hot" : (chg < 0 ? "prem-disc" : "prem-flat"));
+        return `
+          <div class="macro-item">
+            <div>
+              <div class="macro-label">${m.label} (${m.symbol})</div>
+              <div class="macro-val">${m.price !== null ? fmtNum(m.price, 2) : "--"}</div>
+            </div>
+            <span class="macro-chg ${cls}">${fmtPct(chg)}</span>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function renderKpis(summary, items) {
+      document.getElementById("kpiTotal").textContent = summary.total ?? "--";
+      document.getElementById("kpiHigh").textContent = summary.high_premium_count ?? "--";
+      document.getElementById("kpiArb").textContent = summary.open_arb_count ?? "--";
+      document.getElementById("kpiMax").textContent = summary.max_premium !== null ? fmtPct(summary.max_premium) : "--";
+      const top = items.find(x => x.premium_pct === summary.max_premium);
+      document.getElementById("kpiMaxName").textContent = top ? `${top.code} ${top.name} (${top.purchase_limit})` : "--";
+    }
+
+    function renderTable() {
+      const onlyOpen = document.getElementById("onlyOpen").checked;
+      const onlyHigh = document.getElementById("onlyHigh").checked;
+      const q = document.getElementById("searchInput").value.trim().toLowerCase();
+
+      let list = allItems.filter(item => {
+        if (currentCategory !== "ALL" && item.category !== currentCategory) return false;
+        if (onlyOpen && item.is_paused) return false;
+        if (onlyHigh && (item.premium_pct === null || item.premium_pct < 2.0)) return false;
+        if (q && !item.code.includes(q) && !item.name.toLowerCase().includes(q) && !item.full_name.toLowerCase().includes(q)) return false;
+        return true;
+      });
+
+      list.sort((a, b) => {
+        const va = a[sortKey];
+        const vb = b[sortKey];
+        if (va === null || va === undefined) return 1;
+        if (vb === null || vb === undefined) return -1;
+        if (typeof va === "string") return va.localeCompare(vb) * sortDir;
+        return (va - vb) * sortDir;
+      });
+
+      const tbody = document.getElementById("tableBody");
+      if (!list.length) {
+        tbody.innerHTML = `<tr><td colspan="9" class="loading-state">当前筛选条件下没有匹配的 LOF 基金</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = list.map(item => {
+        const p = item.premium_pct;
+        let pCls = "prem-flat";
+        if (p !== null) {
+          if (p >= 3.0) pCls = "prem-hot";
+          else if (p >= 1.5) pCls = "prem-mid";
+          else if (p <= -1.0) pCls = "prem-disc";
+        }
+
+        const chgCls = item.change_pct > 0 ? "num-up" : (item.change_pct < 0 ? "num-down" : "num-muted");
+
+        let stCls = "status-open";
+        if (item.is_paused) stCls = "status-paused";
+        else if ((item.purchase_limit || "").includes("限")) stCls = "status-limit";
+
+        return `
+          <tr onclick="openModal('${item.code}')">
+            <td><span class="fund-code">${item.code}</span></td>
+            <td>
+              <div>
+                <span class="fund-name">${item.name}</span>
+                <span class="fund-cat">${item.category}</span>
+              </div>
+              <div class="fund-bench">${item.bench_name}</div>
+            </td>
+            <td>${fmtNum(item.price, 3)}</td>
+            <td class="${chgCls}">${fmtPct(item.change_pct)}</td>
+            <td>
+              <div>${fmtNum(item.nav, 4)}</div>
+              <div class="fund-bench">${item.nav_date || "--"}</div>
+            </td>
+            <td style="font-weight:600">${fmtNum(item.est_nav, 4)}</td>
+            <td><span class="prem-badge ${pCls}">${fmtPct(p)}</span></td>
+            <td>${item.turnover_wan !== null ? fmtNum(item.turnover_wan, 1) : "--"}</td>
+            <td><span class="status-pill ${stCls}">${item.purchase_limit || item.purchase_status}</span></td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function openModal(code) {
+      const item = allItems.find(x => x.code === code);
+      if (!item) return;
+      document.getElementById("modalTitle").textContent = `${item.code} · ${item.full_name}`;
+      document.getElementById("modalSub").textContent = `${item.category} | ${item.est_method || "估值明细"}`;
+
+      document.getElementById("modalGrid").innerHTML = `
+        <div class="detail-box"><div class="k">场内现价</div><div class="v">${fmtNum(item.price, 4)}</div></div>
+        <div class="detail-box"><div class="k">实时估算净值</div><div class="v">${fmtNum(item.est_nav, 4)}</div></div>
+        <div class="detail-box"><div class="k">实时溢价率</div><div class="v ${item.premium_pct > 0 ? "num-up" : "num-down"}">${fmtPct(item.premium_pct)}</div></div>
+        <div class="detail-box"><div class="k">申购状态 / 限额</div><div class="v">${item.purchase_limit || item.purchase_status}</div></div>
+      `;
+
+      const b = item.breakdown || {};
+      let lines = [];
+      if (item.type === "a_share") {
+        lines.push(`<b>最新官方净值</b>：${fmtNum(b.base_nav, 4)}（净值日：${b.nav_date || "--"}）`);
+        lines.push(`<b>盘中估算涨跌</b>：${fmtPct(b.intraday_est_pct)}`);
+        lines.push(`<b>说明</b>：${b.note || ""}`);
+      } else {
+        lines.push(`<b>官方基准净值</b>：${fmtNum(b.base_nav, 4)}（净值日：${b.nav_date || "--"}）`);
+        lines.push(`<b>估算仓位系数</b>：${b.position ? (b.position * 100).toFixed(0) + "%" : "--"}`);
+        lines.push(`<b>标的补涨 (${b.benchmark || "--"})</b>：${fmtPct(b.benchmark_ret_pct)}（${b.benchmark_note || "--"}）`);
+        lines.push(`<b>盘中期货 (${b.futures || "无"})</b>：${fmtPct(b.futures_ret_pct)}（${b.futures_note || "--"}）`);
+        lines.push(`<b>离岸汇率变化</b>：${fmtPct(b.fx_ret_pct)}（${b.fx_note || "--"}）`);
+        lines.push(`<b>估算公式</b>：官方净值 × (1 + 标的补涨 × 仓位) × (1 + 期货 × 仓位) × (1 + 汇率变化)`);
+      }
+      document.getElementById("modalFormula").innerHTML = lines.join("<br />");
+      document.getElementById("modalBackdrop").classList.add("open");
+    }
+
+    function closeModal() {
+      document.getElementById("modalBackdrop").classList.remove("open");
+    }
+
+    async function loadData(force = false) {
+      const btn = document.getElementById("refreshBtn");
+      btn.disabled = true;
+      btn.textContent = "刷新中...";
+      try {
+        const resp = await fetch(`/api/lof${force ? "?refresh=1" : ""}`);
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const data = await resp.json();
+        allItems = data.items || [];
+        document.getElementById("updatedAt").textContent = `更新时间: ${data.updated_at}${data.cached ? " (缓存)" : ""}`;
+        renderMacro(data.macro);
+        renderKpis(data.summary || {}, allItems);
+        renderTable();
+      } catch (err) {
+        document.getElementById("tableBody").innerHTML =
+          `<tr><td colspan="9" class="loading-state">拉取行情失败：${err.message}，请检查网络连接后点击右上角“立即刷新”。</td></tr>`;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "立即刷新";
+      }
+    }
+
+    // Bind events
+    document.querySelectorAll("#categoryTabs .tab").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("#categoryTabs .tab").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        currentCategory = btn.dataset.cat;
+        renderTable();
+      });
+    });
+
+    document.getElementById("onlyOpen").addEventListener("change", renderTable);
+    document.getElementById("onlyHigh").addEventListener("change", renderTable);
+    document.getElementById("searchInput").addEventListener("input", renderTable);
+
+    document.querySelectorAll("thead th[data-sort]").forEach(th => {
+      th.addEventListener("click", () => {
+        const key = th.dataset.sort;
+        if (sortKey === key) sortDir *= -1;
+        else { sortKey = key; sortDir = key === "code" || key === "name" ? 1 : -1; }
+        document.querySelectorAll("thead th").forEach(el => {
+          el.classList.remove("sorted");
+          el.textContent = el.textContent.replace(/ [↑↓]$/, "");
+        });
+        th.classList.add("sorted");
+        th.textContent += sortDir === -1 ? " ↓" : " ↑";
+        renderTable();
+      });
+    });
+
+    function setupAutoRefresh() {
+      if (refreshTimer) clearInterval(refreshTimer);
+      if (document.getElementById("autoRefresh").checked) {
+        refreshTimer = setInterval(() => loadData(false), 60000);
+      }
+    }
+    document.getElementById("autoRefresh").addEventListener("change", setupAutoRefresh);
+
+    loadData(false);
+    setupAutoRefresh();
+  </script>
+</body>
+</html>
