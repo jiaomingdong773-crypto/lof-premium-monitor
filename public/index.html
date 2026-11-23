@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>中国 LOF 基金实时溢价监测看板</title>
   <style>
     :root {
@@ -22,20 +22,22 @@
       --accent-bg: rgba(59, 130, 246, 0.16);
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
-    body {
+    html, body {
+      width: 100%;
+      overflow-x: hidden;
       font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Inter", sans-serif;
       background: var(--bg);
       color: var(--text);
-      line-height: 1.5;
+      line-height: 1.45;
       min-height: 100vh;
     }
 
     .container {
       max-width: 1400px;
       margin: 0 auto;
-      padding: 20px 16px 48px;
+      padding: 18px 16px 48px;
     }
 
     /* Header */
@@ -44,35 +46,36 @@
       flex-wrap: wrap;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 18px;
+      gap: 10px;
+      margin-bottom: 14px;
     }
     .title-wrap h1 {
-      font-size: 22px;
+      font-size: 20px;
       font-weight: 700;
       letter-spacing: -0.01em;
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
     }
     .live-dot {
-      width: 9px;
-      height: 9px;
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
       background: var(--down);
-      box-shadow: 0 0 10px var(--down);
+      box-shadow: 0 0 8px var(--down);
       display: inline-block;
+      flex-shrink: 0;
     }
     .subtitle {
-      font-size: 13px;
+      font-size: 12px;
       color: var(--muted);
-      margin-top: 2px;
+      margin-top: 3px;
     }
 
     .header-actions {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       flex-wrap: wrap;
     }
     .meta-time {
@@ -84,7 +87,7 @@
       background: var(--surface-2);
       color: var(--text);
       border: 1px solid var(--border);
-      padding: 7px 14px;
+      padding: 6px 12px;
       border-radius: 8px;
       font-size: 13px;
       cursor: pointer;
@@ -105,58 +108,74 @@
     /* Macro Ticker */
     .macro-bar {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-      gap: 10px;
-      margin-bottom: 16px;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 8px;
+      margin-bottom: 14px;
     }
     .macro-item {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 10px;
-      padding: 10px 14px;
+      padding: 9px 11px;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 6px;
       font-variant-numeric: tabular-nums;
+      min-width: 0;
     }
-    .macro-label { font-size: 12px; color: var(--muted); }
-    .macro-val { font-size: 15px; font-weight: 600; margin-top: 2px; }
-    .macro-chg { font-size: 12px; font-weight: 600; padding: 2px 7px; border-radius: 6px; }
+    .macro-label {
+      font-size: 11px;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .macro-val { font-size: 14px; font-weight: 600; margin-top: 2px; }
+    .macro-chg { font-size: 11px; font-weight: 600; padding: 2px 6px; border-radius: 5px; white-space: nowrap; }
 
     /* KPI Cards */
     .kpi-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-      gap: 12px;
-      margin-bottom: 18px;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
     }
     .kpi-card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 14px 16px;
+      border-radius: 10px;
+      padding: 12px 14px;
+      min-width: 0;
     }
-    .kpi-label { font-size: 12px; color: var(--muted); }
+    .kpi-label { font-size: 11px; color: var(--muted); }
     .kpi-value {
-      font-size: 26px;
+      font-size: 22px;
       font-weight: 700;
-      margin-top: 4px;
+      margin-top: 3px;
       font-variant-numeric: tabular-nums;
     }
-    .kpi-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .kpi-sub {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
 
     /* Controls */
     .controls {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 12px 14px;
-      margin-bottom: 14px;
+      padding: 10px 12px;
+      margin-bottom: 12px;
       display: flex;
       flex-wrap: wrap;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
+      gap: 10px;
     }
     .tabs {
       display: flex;
@@ -171,6 +190,8 @@
       border-radius: 999px;
       font-size: 12px;
       cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
       transition: all 0.15s;
     }
     .tab:hover { color: var(--text); border-color: #374151; }
@@ -190,26 +211,28 @@
     .toggle-label {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
       font-size: 12px;
       color: var(--text);
       cursor: pointer;
       user-select: none;
+      white-space: nowrap;
     }
     .toggle-label input { accent-color: var(--accent); cursor: pointer; }
-    .search-input {
+    .search-input, .sort-select {
       background: var(--bg);
       color: var(--text);
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 6px 12px;
+      padding: 6px 10px;
       font-size: 13px;
-      width: 190px;
       outline: none;
     }
-    .search-input:focus { border-color: var(--accent); }
+    .search-input { width: 180px; }
+    .search-input:focus, .sort-select:focus { border-color: var(--accent); }
+    .mobile-sort-wrap { display: none; }
 
-    /* Table */
+    /* Desktop Table */
     .table-wrap {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -221,7 +244,7 @@
       border-collapse: collapse;
       font-size: 13px;
       font-variant-numeric: tabular-nums;
-      min-width: 960px;
+      min-width: 920px;
     }
     thead th {
       text-align: right;
@@ -249,16 +272,67 @@
     tbody tr:hover { background: var(--surface-2); }
     tbody td { padding: 11px 12px; white-space: nowrap; }
 
+    /* Mobile Card List (hidden on desktop) */
+    .mobile-list {
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .m-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 13px;
+      cursor: pointer;
+      transition: background 0.12s;
+      font-variant-numeric: tabular-nums;
+    }
+    .m-card:active { background: var(--surface-2); }
+    .m-card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .m-card-title { min-width: 0; }
+    .m-card-name-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .m-card-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(31, 41, 55, 0.8);
+      border-radius: 8px;
+      padding: 8px 10px;
+      margin-bottom: 9px;
+    }
+    .m-metric-k { font-size: 11px; color: var(--muted); }
+    .m-metric-v { font-size: 14px; font-weight: 600; margin-top: 1px; }
+    .m-metric-s { font-size: 11px; margin-top: 1px; }
+    .m-card-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
     .fund-code { font-weight: 700; color: #93c5fd; font-size: 13px; }
-    .fund-name { font-weight: 600; color: var(--text); }
+    .fund-name { font-weight: 600; color: var(--text); font-size: 14px; }
     .fund-cat {
       display: inline-block;
-      font-size: 11px;
+      font-size: 10px;
       padding: 1px 6px;
       border-radius: 4px;
       background: #1f2937;
       color: #cbd5e1;
-      margin-left: 6px;
     }
     .fund-bench { font-size: 11px; color: var(--muted); margin-top: 2px; }
 
@@ -274,6 +348,7 @@
       border-radius: 6px;
       font-weight: 700;
       font-size: 13px;
+      flex-shrink: 0;
     }
     .prem-hot { background: var(--up-bg); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.35); }
     .prem-mid { background: var(--warn-bg); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.35); }
@@ -286,6 +361,10 @@
       padding: 2px 8px;
       border-radius: 999px;
       font-weight: 600;
+      max-width: 210px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     .status-open { background: var(--down-bg); color: #34d399; }
     .status-limit { background: var(--warn-bg); color: #fbbf24; }
@@ -293,28 +372,28 @@
 
     .loading-state {
       text-align: center;
-      padding: 48px 20px;
+      padding: 40px 16px;
       color: var(--muted);
+      font-size: 13px;
     }
 
-    /* Footer note */
     .footer-note {
       margin-top: 16px;
       font-size: 12px;
       color: var(--muted);
-      line-height: 1.7;
+      line-height: 1.65;
     }
 
     /* Modal */
     .modal-backdrop {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.65);
+      background: rgba(0, 0, 0, 0.7);
       display: none;
       align-items: center;
       justify-content: center;
       z-index: 50;
-      padding: 16px;
+      padding: 14px;
     }
     .modal-backdrop.open { display: flex; }
     .modal {
@@ -322,48 +401,119 @@
       border: 1px solid #334155;
       border-radius: 14px;
       width: 100%;
-      max-width: 540px;
-      padding: 20px;
+      max-width: 520px;
+      max-height: 88vh;
+      overflow-y: auto;
+      padding: 18px;
       box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
     }
     .modal-header {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      margin-bottom: 14px;
+      gap: 10px;
+      margin-bottom: 12px;
     }
-    .modal-title { font-size: 17px; font-weight: 700; }
+    .modal-title { font-size: 16px; font-weight: 700; }
     .modal-close {
       background: transparent;
       border: none;
       color: var(--muted);
-      font-size: 22px;
+      font-size: 24px;
       cursor: pointer;
       line-height: 1;
+      padding: 0 4px;
     }
     .modal-close:hover { color: var(--text); }
     .detail-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-bottom: 14px;
+      gap: 8px;
+      margin-bottom: 12px;
     }
     .detail-box {
       background: var(--bg);
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 10px 12px;
+      padding: 9px 11px;
     }
     .detail-box .k { font-size: 11px; color: var(--muted); }
-    .detail-box .v { font-size: 15px; font-weight: 700; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .detail-box .v { font-size: 14px; font-weight: 700; margin-top: 2px; font-variant-numeric: tabular-nums; word-break: break-all; }
     .formula-box {
       background: #0f172a;
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 12px;
+      padding: 11px;
       font-size: 12px;
       color: #cbd5e1;
-      line-height: 1.8;
+      line-height: 1.75;
+    }
+
+    /* Responsive: Tablet */
+    @media (max-width: 1024px) {
+      .macro-bar { grid-template-columns: repeat(3, 1fr); }
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    /* Responsive: Mobile / WeChat (< 768px) */
+    @media (max-width: 768px) {
+      .container { padding: 12px 10px 36px; }
+      .title-wrap h1 { font-size: 17px; }
+      .subtitle { font-size: 11px; }
+      .header { gap: 8px; margin-bottom: 10px; }
+      .header-actions { width: 100%; justify-content: space-between; }
+
+      .macro-bar {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+        margin-bottom: 10px;
+      }
+      .macro-item {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 7px 8px;
+        gap: 2px;
+      }
+      .macro-label { font-size: 10px; width: 100%; }
+      .macro-val { font-size: 13px; margin-top: 0; }
+      .macro-chg { font-size: 10px; padding: 1px 5px; margin-top: 2px; }
+
+      .kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+      .kpi-card { padding: 10px 11px; }
+      .kpi-value { font-size: 19px; }
+
+      .controls {
+        padding: 10px;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+      .tabs {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        width: 100%;
+        padding-bottom: 2px;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+      }
+      .tabs::-webkit-scrollbar { display: none; }
+
+      .filters-right {
+        width: 100%;
+        gap: 8px;
+      }
+      .search-input { flex: 1; min-width: 130px; width: auto; }
+      .mobile-sort-wrap { display: block; }
+
+      /* Switch from wide table to native mobile cards */
+      .table-wrap { display: none; }
+      .mobile-list { display: flex; }
+
+      .prem-badge { font-size: 14px; padding: 4px 9px; min-width: 72px; }
+      .footer-note { font-size: 11px; }
     }
   </style>
 </head>
@@ -372,16 +522,18 @@
     <!-- Header -->
     <div class="header">
       <div class="title-wrap">
-        <h1><span class="live-dot"></span>中国 LOF 基金实时溢价监测看板</h1>
-        <div class="subtitle">覆盖 50 只热门美股 / 原油 / 黄金 / 海外 / A股 LOF · 自动对齐 T-2 净值日期并叠加昨夜行情、盘中期货与离岸汇率</div>
+        <h1><span class="live-dot"></span>LOF 基金实时溢价看板</h1>
+        <div class="subtitle">50 只热门美股/原油/黄金/海外/A股 LOF · 昨夜标的 + 盘中期货 + 汇率实时估值</div>
       </div>
       <div class="header-actions">
         <span class="meta-time" id="updatedAt">加载中...</span>
-        <label class="toggle-label">
-          <input type="checkbox" id="autoRefresh" checked />
-          60s 自动刷新
-        </label>
-        <button class="btn btn-primary" id="refreshBtn" onclick="loadData(true)">立即刷新</button>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <label class="toggle-label">
+            <input type="checkbox" id="autoRefresh" checked />
+            60s刷新
+          </label>
+          <button class="btn btn-primary" id="refreshBtn" onclick="loadData(true)">刷新</button>
+        </div>
       </div>
     </div>
 
@@ -391,22 +543,22 @@
     <!-- KPI Cards -->
     <div class="kpi-grid">
       <div class="kpi-card">
-        <div class="kpi-label">当前监控 LOF 总数</div>
+        <div class="kpi-label">监控 LOF 总数</div>
         <div class="kpi-value" id="kpiTotal">--</div>
-        <div class="kpi-sub">含美股 / 原油 / 黄金 / 港股 / A股</div>
+        <div class="kpi-sub">美股/原油/黄金/港股/A股</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">高溢价预警 (≥ 3%)</div>
+        <div class="kpi-label">高溢价预警 (≥3%)</div>
         <div class="kpi-value num-up" id="kpiHigh">--</div>
-        <div class="kpi-sub">场内情绪偏热，注意溢价回落风险</div>
+        <div class="kpi-sub">场内偏热，注意回落风险</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">潜在套利机会 (溢价≥2% 且未暂停)</div>
+        <div class="kpi-label">可套利 (≥2%且未暂停)</div>
         <div class="kpi-value" style="color:#fbbf24" id="kpiArb">--</div>
-        <div class="kpi-sub">申购需结合手续费与 T+2 波动评估</div>
+        <div class="kpi-sub">注意申购费与 T+2 波动</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">当前最高实时溢价率</div>
+        <div class="kpi-label">当前最高实时溢价</div>
         <div class="kpi-value num-up" id="kpiMax">--</div>
         <div class="kpi-sub" id="kpiMaxName">--</div>
       </div>
@@ -417,25 +569,32 @@
       <div class="tabs" id="categoryTabs">
         <button class="tab active" data-cat="ALL">全部 (50)</button>
         <button class="tab" data-cat="美股QDII">美股QDII</button>
-        <button class="tab" data-cat="原油商品QDII">原油商品QDII</button>
-        <button class="tab" data-cat="黄金贵金属">黄金贵金属</button>
-        <button class="tab" data-cat="港股/海外QDII">港股/海外QDII</button>
-        <button class="tab" data-cat="A股热门LOF">A股热门LOF</button>
+        <button class="tab" data-cat="原油商品QDII">原油商品</button>
+        <button class="tab" data-cat="黄金贵金属">黄金白银</button>
+        <button class="tab" data-cat="港股/海外QDII">港股/海外</button>
+        <button class="tab" data-cat="A股热门LOF">A股LOF</button>
       </div>
       <div class="filters-right">
         <label class="toggle-label">
           <input type="checkbox" id="onlyOpen" />
-          仅看未暂停申购
+          仅未暂停
         </label>
         <label class="toggle-label">
           <input type="checkbox" id="onlyHigh" />
-          仅看溢价 ≥ 2%
+          溢价≥2%
         </label>
-        <input type="text" class="search-input" id="searchInput" placeholder="搜索代码或名称..." />
+        <div class="mobile-sort-wrap">
+          <select class="sort-select" id="mobileSort">
+            <option value="premium_pct">按溢价率 ↓</option>
+            <option value="change_pct">按场内涨幅 ↓</option>
+            <option value="turnover_wan">按成交额 ↓</option>
+          </select>
+        </div>
+        <input type="text" class="search-input" id="searchInput" placeholder="搜索代码/名称..." />
       </div>
     </div>
 
-    <!-- Table -->
+    <!-- Desktop Table -->
     <div class="table-wrap">
       <table>
         <thead>
@@ -452,14 +611,19 @@
           </tr>
         </thead>
         <tbody id="tableBody">
-          <tr><td colspan="9" class="loading-state">正在并发拉取 50 只 LOF 实时行情、官方净值、美股标的与期货数据，请稍候（约 3~5 秒）...</td></tr>
+          <tr><td colspan="9" class="loading-state">正在并发拉取 50 只 LOF 实时行情、官方净值、美股标的与期货数据，请稍候...</td></tr>
         </tbody>
       </table>
     </div>
 
+    <!-- Mobile Card List -->
+    <div class="mobile-list" id="mobileList">
+      <div class="m-card loading-state">正在并发拉取 50 只 LOF 实时数据，请稍候...</div>
+    </div>
+
     <div class="footer-note">
-      * 估值说明：美股与大宗商品 QDII-LOF 根据官方净值基准日自动对齐其后所有美股交易日涨跌幅，并结合盘中股指/商品期货及离岸人民币 (USD/CNH) 汇率按估算仓位动态推算；A 股 LOF 使用天天基金盘中实时估值。点击任意一行可查看详细估值拆解。<br />
-      * 免责声明：本工具仅用于公开行情整理与研究参考，实时估值存在仓位偏差、申赎费率与汇率误差，不构成任何投资建议。
+      * 估值说明：美股与商品 QDII-LOF 自动对齐官方净值基准日，叠加昨夜标的收盘、盘中期货及离岸人民币 (USD/CNH) 汇率推算；A 股 LOF 采用天天基金盘中估值。点击任意基金可查看完整计算明细。<br />
+      * 免责声明：本工具仅用于公开行情整理与研究参考，不构成任何投资建议。
     </div>
   </div>
 
@@ -482,7 +646,7 @@
     let allItems = [];
     let currentCategory = "ALL";
     let sortKey = "premium_pct";
-    let sortDir = -1; // -1 desc, 1 asc
+    let sortDir = -1;
     let refreshTimer = null;
 
     function fmtNum(v, digits = 4) {
@@ -496,6 +660,11 @@
       return `${showPlus && n > 0 ? "+" : ""}${n.toFixed(2)}%`;
     }
 
+    function shortDate(d) {
+      if (!d) return "--";
+      return d.length >= 10 ? d.slice(5) : d;
+    }
+
     function renderMacro(macro) {
       const bar = document.getElementById("macroBar");
       bar.innerHTML = (macro || []).map(m => {
@@ -503,8 +672,8 @@
         const cls = chg === null ? "prem-flat" : (chg > 0 ? "prem-hot" : (chg < 0 ? "prem-disc" : "prem-flat"));
         return `
           <div class="macro-item">
-            <div>
-              <div class="macro-label">${m.label} (${m.symbol})</div>
+            <div style="min-width:0;width:100%;">
+              <div class="macro-label">${m.label}</div>
               <div class="macro-val">${m.price !== null ? fmtNum(m.price, 2) : "--"}</div>
             </div>
             <span class="macro-chg ${cls}">${fmtPct(chg)}</span>
@@ -519,15 +688,15 @@
       document.getElementById("kpiArb").textContent = summary.open_arb_count ?? "--";
       document.getElementById("kpiMax").textContent = summary.max_premium !== null ? fmtPct(summary.max_premium) : "--";
       const top = items.find(x => x.premium_pct === summary.max_premium);
-      document.getElementById("kpiMaxName").textContent = top ? `${top.code} ${top.name} (${top.purchase_limit})` : "--";
+      document.getElementById("kpiMaxName").textContent = top ? `${top.code} ${top.name}` : "--";
     }
 
-    function renderTable() {
+    function getFilteredSortedList() {
       const onlyOpen = document.getElementById("onlyOpen").checked;
       const onlyHigh = document.getElementById("onlyHigh").checked;
       const q = document.getElementById("searchInput").value.trim().toLowerCase();
 
-      let list = allItems.filter(item => {
+      const list = allItems.filter(item => {
         if (currentCategory !== "ALL" && item.category !== currentCategory) return false;
         if (onlyOpen && item.is_paused) return false;
         if (onlyHigh && (item.premium_pct === null || item.premium_pct < 2.0)) return false;
@@ -543,28 +712,38 @@
         if (typeof va === "string") return va.localeCompare(vb) * sortDir;
         return (va - vb) * sortDir;
       });
+      return list;
+    }
 
+    function getBadgeClasses(item) {
+      const p = item.premium_pct;
+      let pCls = "prem-flat";
+      if (p !== null) {
+        if (p >= 3.0) pCls = "prem-hot";
+        else if (p >= 1.5) pCls = "prem-mid";
+        else if (p <= -1.0) pCls = "prem-disc";
+      }
+      const chgCls = item.change_pct > 0 ? "num-up" : (item.change_pct < 0 ? "num-down" : "num-muted");
+      let stCls = "status-open";
+      if (item.is_paused) stCls = "status-paused";
+      else if ((item.purchase_limit || "").includes("限")) stCls = "status-limit";
+      return { pCls, chgCls, stCls };
+    }
+
+    function renderList() {
+      const list = getFilteredSortedList();
       const tbody = document.getElementById("tableBody");
+      const mobileList = document.getElementById("mobileList");
+
       if (!list.length) {
         tbody.innerHTML = `<tr><td colspan="9" class="loading-state">当前筛选条件下没有匹配的 LOF 基金</td></tr>`;
+        mobileList.innerHTML = `<div class="m-card loading-state">当前筛选条件下没有匹配的 LOF 基金</div>`;
         return;
       }
 
+      // Desktop table rows
       tbody.innerHTML = list.map(item => {
-        const p = item.premium_pct;
-        let pCls = "prem-flat";
-        if (p !== null) {
-          if (p >= 3.0) pCls = "prem-hot";
-          else if (p >= 1.5) pCls = "prem-mid";
-          else if (p <= -1.0) pCls = "prem-disc";
-        }
-
-        const chgCls = item.change_pct > 0 ? "num-up" : (item.change_pct < 0 ? "num-down" : "num-muted");
-
-        let stCls = "status-open";
-        if (item.is_paused) stCls = "status-paused";
-        else if ((item.purchase_limit || "").includes("限")) stCls = "status-limit";
-
+        const { pCls, chgCls, stCls } = getBadgeClasses(item);
         return `
           <tr onclick="openModal('${item.code}')">
             <td><span class="fund-code">${item.code}</span></td>
@@ -582,10 +761,51 @@
               <div class="fund-bench">${item.nav_date || "--"}</div>
             </td>
             <td style="font-weight:600">${fmtNum(item.est_nav, 4)}</td>
-            <td><span class="prem-badge ${pCls}">${fmtPct(p)}</span></td>
+            <td><span class="prem-badge ${pCls}">${fmtPct(item.premium_pct)}</span></td>
             <td>${item.turnover_wan !== null ? fmtNum(item.turnover_wan, 1) : "--"}</td>
             <td><span class="status-pill ${stCls}">${item.purchase_limit || item.purchase_status}</span></td>
           </tr>
+        `;
+      }).join("");
+
+      // Mobile cards
+      mobileList.innerHTML = list.map(item => {
+        const { pCls, chgCls, stCls } = getBadgeClasses(item);
+        return `
+          <div class="m-card" onclick="openModal('${item.code}')">
+            <div class="m-card-top">
+              <div class="m-card-title">
+                <div class="m-card-name-row">
+                  <span class="fund-name">${item.name}</span>
+                  <span class="fund-code">${item.code}</span>
+                  <span class="fund-cat">${item.category}</span>
+                </div>
+                <div class="fund-bench">${item.bench_name}</div>
+              </div>
+              <span class="prem-badge ${pCls}">${fmtPct(item.premium_pct)}</span>
+            </div>
+            <div class="m-card-grid">
+              <div>
+                <div class="m-metric-k">场内现价</div>
+                <div class="m-metric-v">${fmtNum(item.price, 3)}</div>
+                <div class="m-metric-s ${chgCls}">${fmtPct(item.change_pct)}</div>
+              </div>
+              <div>
+                <div class="m-metric-k">实时估值</div>
+                <div class="m-metric-v">${fmtNum(item.est_nav, 4)}</div>
+                <div class="m-metric-s num-muted">动态推算</div>
+              </div>
+              <div>
+                <div class="m-metric-k">官方净值</div>
+                <div class="m-metric-v">${fmtNum(item.nav, 4)}</div>
+                <div class="m-metric-s num-muted">${shortDate(item.nav_date)}</div>
+              </div>
+            </div>
+            <div class="m-card-bottom">
+              <span class="status-pill ${stCls}">${item.purchase_limit || item.purchase_status}</span>
+              <span>成交 ${item.turnover_wan !== null ? fmtNum(item.turnover_wan, 0) + "万" : "--"} · 明细 ›</span>
+            </div>
+          </div>
         `;
       }).join("");
     }
@@ -600,7 +820,7 @@
         <div class="detail-box"><div class="k">场内现价</div><div class="v">${fmtNum(item.price, 4)}</div></div>
         <div class="detail-box"><div class="k">实时估算净值</div><div class="v">${fmtNum(item.est_nav, 4)}</div></div>
         <div class="detail-box"><div class="k">实时溢价率</div><div class="v ${item.premium_pct > 0 ? "num-up" : "num-down"}">${fmtPct(item.premium_pct)}</div></div>
-        <div class="detail-box"><div class="k">申购状态 / 限额</div><div class="v">${item.purchase_limit || item.purchase_status}</div></div>
+        <div class="detail-box"><div class="k">申购状态 / 限额</div><div class="v" style="font-size:12px;">${item.purchase_limit || item.purchase_status}</div></div>
       `;
 
       const b = item.breakdown || {};
@@ -628,38 +848,44 @@
     async function loadData(force = false) {
       const btn = document.getElementById("refreshBtn");
       btn.disabled = true;
-      btn.textContent = "刷新中...";
+      btn.textContent = "刷新中";
       try {
         const resp = await fetch(`/api/lof${force ? "?refresh=1" : ""}`);
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
         const data = await resp.json();
         allItems = data.items || [];
-        document.getElementById("updatedAt").textContent = `更新时间: ${data.updated_at}${data.cached ? " (缓存)" : ""}`;
+        document.getElementById("updatedAt").textContent = `更新 ${data.updated_at.slice(11)}${data.cached ? " (缓存)" : ""}`;
         renderMacro(data.macro);
         renderKpis(data.summary || {}, allItems);
-        renderTable();
+        renderList();
       } catch (err) {
-        document.getElementById("tableBody").innerHTML =
-          `<tr><td colspan="9" class="loading-state">拉取行情失败：${err.message}，请检查网络连接后点击右上角“立即刷新”。</td></tr>`;
+        const msg = `拉取行情失败：${err.message}，请点右上角“刷新”重试。`;
+        document.getElementById("tableBody").innerHTML = `<tr><td colspan="9" class="loading-state">${msg}</td></tr>`;
+        document.getElementById("mobileList").innerHTML = `<div class="m-card loading-state">${msg}</div>`;
       } finally {
         btn.disabled = false;
-        btn.textContent = "立即刷新";
+        btn.textContent = "刷新";
       }
     }
 
-    // Bind events
     document.querySelectorAll("#categoryTabs .tab").forEach(btn => {
       btn.addEventListener("click", () => {
         document.querySelectorAll("#categoryTabs .tab").forEach(b => b.classList.remove("active"));
         btn.classList.add("active");
         currentCategory = btn.dataset.cat;
-        renderTable();
+        renderList();
       });
     });
 
-    document.getElementById("onlyOpen").addEventListener("change", renderTable);
-    document.getElementById("onlyHigh").addEventListener("change", renderTable);
-    document.getElementById("searchInput").addEventListener("input", renderTable);
+    document.getElementById("onlyOpen").addEventListener("change", renderList);
+    document.getElementById("onlyHigh").addEventListener("change", renderList);
+    document.getElementById("searchInput").addEventListener("input", renderList);
+
+    document.getElementById("mobileSort").addEventListener("change", e => {
+      sortKey = e.target.value;
+      sortDir = -1;
+      renderList();
+    });
 
     document.querySelectorAll("thead th[data-sort]").forEach(th => {
       th.addEventListener("click", () => {
@@ -672,7 +898,7 @@
         });
         th.classList.add("sorted");
         th.textContent += sortDir === -1 ? " ↓" : " ↑";
-        renderTable();
+        renderList();
       });
     });
 
